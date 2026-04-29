@@ -14,11 +14,12 @@ import com.smartbudget.app.data.local.entity.ExpenseEntity
 import com.smartbudget.app.presentation.ui.screens.*
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
-    object Expenses : Screen("expenses", "Dépenses", Icons.Default.List)
-    object Stats : Screen("stats", "Statistiques", Icons.Default.BarChart)
-    object Settings : Screen("settings", "Paramètres", Icons.Default.Settings)
-    object AddExpense : Screen("add_expense", "Ajouter", Icons.Default.List)
-    object EditExpense : Screen("edit_expense/{expenseId}", "Modifier", Icons.Default.List)
+    object Welcome   : Screen("welcome", "Accueil", Icons.Default.List)
+    object Expenses  : Screen("expenses", "Dépenses", Icons.Default.List)
+    object Stats     : Screen("stats", "Statistiques", Icons.Default.BarChart)
+    object Settings  : Screen("settings", "Paramètres", Icons.Default.Settings)
+    object AddExpense: Screen("add_expense", "Ajouter", Icons.Default.List)
+    object EditExpense: Screen("edit_expense/{expenseId}", "Modifier", Icons.Default.List)
 }
 
 val bottomNavItems = listOf(Screen.Expenses, Screen.Stats, Screen.Settings)
@@ -29,11 +30,14 @@ fun SmartBudgetNavGraph() {
     val navBackStack by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStack?.destination?.route
 
+    // La bottom bar n'apparaît PAS sur welcome, add, edit
+    val showBottomBar = currentRoute in bottomNavItems.map { it.route }
+
     var expenseToEdit by remember { mutableStateOf<ExpenseEntity?>(null) }
 
     Scaffold(
         bottomBar = {
-            if (currentRoute in bottomNavItems.map { it.route }) {
+            if (showBottomBar) {
                 NavigationBar {
                     bottomNavItems.forEach { screen ->
                         NavigationBarItem(
@@ -57,9 +61,21 @@ fun SmartBudgetNavGraph() {
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Expenses.route,
+            startDestination = Screen.Welcome.route,   // ← démarre sur Welcome
             modifier = androidx.compose.ui.Modifier.padding(padding)
         ) {
+            // Écran de bienvenue — pas de padding, plein écran
+            composable(Screen.Welcome.route) {
+                WelcomeScreen(
+                    onGetStarted = {
+                        navController.navigate(Screen.Expenses.route) {
+                            // On retire Welcome du back stack : bouton retour ne revient pas dessus
+                            popUpTo(Screen.Welcome.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
             composable(Screen.Expenses.route) {
                 ExpenseListScreen(
                     onAddExpense = { navController.navigate(Screen.AddExpense.route) },
