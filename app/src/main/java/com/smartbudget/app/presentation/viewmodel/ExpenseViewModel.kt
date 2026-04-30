@@ -1,12 +1,16 @@
 package com.smartbudget.app.presentation.viewmodel
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartbudget.app.data.local.entity.CategoryEntity
 import com.smartbudget.app.data.local.entity.ExpenseEntity
 import com.smartbudget.app.data.repository.CategoryRepository
 import com.smartbudget.app.data.repository.ExpenseRepository
+import com.smartbudget.app.util.NotificationHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -28,13 +32,18 @@ data class ExpenseUiState(
 @HiltViewModel
 class ExpenseViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ExpenseUiState())
     val uiState: StateFlow<ExpenseUiState> = _uiState.asStateFlow()
 
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM")
+
+    // Budget global limite (4000 MAD)
+    private val GLOBAL_BUDGET_LIMIT = 4000.0
+    private var lastNotifiedTotal = 0.0
 
     init {
         loadData()
@@ -108,6 +117,8 @@ class ExpenseViewModel @Inject constructor(
                     isRecurring = isRecurring
                 )
                 expenseRepository.addExpense(expense)
+                // Vérifier le budget global après chaque ajout
+                checkGlobalBudgetAlert()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = e.message)
             }
@@ -118,6 +129,7 @@ class ExpenseViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 expenseRepository.updateExpense(expense)
+                checkGlobalBudgetAlert()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = e.message)
             }
@@ -132,5 +144,28 @@ class ExpenseViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
+    }
+
+    // ── Vérification budget global 4000 MAD ──────────────────────────────
+    private fun checkGlobalBudgetAlert() {
+        viewModelScope.launch {
+            val yearMonth = _uiState.value.selectedMonth.format(formatter)
+
+            // first() pour récupérer la valeur actuelle une seule fois
+            val total = expenseRepository.getTotalByMonth(yearMonth).first() ?: 0.0
+
+            Log.d("ExpenseViewModel", "Total actuel : $total MAD / limite : $GLOBAL_BUDGET_LIMIT MAD")
+
+            if (total > GLOBAL_BUDGET_LIMIT && lastNotifiedTotal <= GLOBAL_BUDGET_LIMIT) {
+                Log.d("ExpenseViewModel", "Envoi notification dépassement budget !")
+                NotificationHelper.sendGlobalBudgetAlert(context, total, GLOBAL_BUDGET_LIMIT)
+            }
+            lastNotifiedTotal = total
+        }
+    }
+
+    // ── Retourne la dépense la plus chère du mois courant ─────────────────
+    fun getTopExpenseId(): Long? {
+        return _uiState.value.expenses.maxByOrNull { it.amount }?.id
     }
 }

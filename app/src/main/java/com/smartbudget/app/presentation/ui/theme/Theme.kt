@@ -11,18 +11,37 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = Primary,
-    secondary = Secondary,
-    background = Background,
-    surface = Surface,
-    error = Error
+    primary           = Color(0xFF6650A4),
+    onPrimary         = Color(0xFFFFFFFF),
+    primaryContainer  = Color(0xFFEADDFF),
+    onPrimaryContainer= Color(0xFF21005D),
+    secondary         = Color(0xFF625B71),
+    onSecondary       = Color(0xFFFFFFFF),
+    background        = Color(0xFFF6F0FF),
+    onBackground      = Color(0xFF1C1B1F),
+    surface           = Color(0xFFFFFFFF),
+    onSurface         = Color(0xFF1C1B1F),
+    surfaceVariant    = Color(0xFFE7E0EC),
+    onSurfaceVariant  = Color(0xFF49454F),
+    error             = Color(0xFFB00020),
+    onError           = Color(0xFFFFFFFF),
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryVariant,
-    secondary = Secondary,
-    background = Color(0xFF1C1B1F),
-    surface = Color(0xFF2B2930)
+    primary           = Color(0xFFD0BCFF),
+    onPrimary         = Color(0xFF381E72),
+    primaryContainer  = Color(0xFF4F378B),
+    onPrimaryContainer= Color(0xFFEADDFF),
+    secondary         = Color(0xFFCCC2DC),
+    onSecondary       = Color(0xFF332D41),
+    background        = Color(0xFF1C1B1F),
+    onBackground      = Color(0xFFE6E1E5),
+    surface           = Color(0xFF2B2930),
+    onSurface         = Color(0xFFE6E1E5),
+    surfaceVariant    = Color(0xFF49454F),
+    onSurfaceVariant  = Color(0xFFCAC4D0),
+    error             = Color(0xFFCF6679),
+    onError           = Color(0xFF690023),
 )
 
 @Composable
@@ -37,13 +56,14 @@ fun SmartBudgetTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view)
+                .isAppearanceLightStatusBars = !darkTheme
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
-        content = content
+        typography  = Typography,
+        content     = content
     )
 }

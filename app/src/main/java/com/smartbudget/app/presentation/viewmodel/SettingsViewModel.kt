@@ -32,6 +32,14 @@ class SettingsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
+    // ── Dark Mode ─────────────────────────────────────────────────────────
+    private val _isDarkMode = MutableStateFlow(false)
+    val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
+
+    fun toggleDarkMode() {
+        _isDarkMode.value = !_isDarkMode.value
+    }
+
     init {
         viewModelScope.launch {
             categoryRepository.getAllCategories().collect { cats ->
@@ -73,17 +81,17 @@ class SettingsViewModel @Inject constructor(
     fun exportCsv(yearMonth: String) {
         viewModelScope.launch {
             try {
-                val expenses = expenseRepository.getExpensesByMonthForExport(yearMonth)
+                val expenses   = expenseRepository.getExpensesByMonthForExport(yearMonth)
                 val categories = categoryRepository.getAllCategories().first()
-                val catMap = categories.associateBy { it.id }
-                val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                val catMap     = categories.associateBy { it.id }
+                val dateFmt    = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
                 val csv = buildString {
                     appendLine("Date,Montant,Devise,Catégorie,Note,Méthode paiement,Récurrent")
                     expenses.forEach { e ->
                         val catName = catMap[e.categoryId]?.name ?: "Inconnu"
                         appendLine(
-                            "${e.date.format(dateFormatter)}," +
+                            "${e.date.format(dateFmt)}," +
                                     "${e.amount}," +
                                     "${e.currency}," +
                                     "$catName," +
@@ -100,7 +108,9 @@ class SettingsViewModel @Inject constructor(
                     exportMessage = "Exporté : ${file.absolutePath}"
                 )
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(errorMessage = "Erreur export : ${e.message}")
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = "Erreur export : ${e.message}"
+                )
             }
         }
     }

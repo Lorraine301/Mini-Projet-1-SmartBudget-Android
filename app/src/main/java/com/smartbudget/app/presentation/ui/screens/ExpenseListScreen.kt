@@ -23,10 +23,14 @@ import com.smartbudget.app.presentation.viewmodel.ExpenseViewModel
 fun ExpenseListScreen(
     onAddExpense: () -> Unit,
     onEditExpense: (ExpenseEntity) -> Unit,
+    onViewDetail: (ExpenseEntity) -> Unit,
     viewModel: ExpenseViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDeleteDialog by remember { mutableStateOf<ExpenseEntity?>(null) }
+
+    val topExpenseId: Long? = uiState.expenses
+        .maxByOrNull { it.amount }?.id
 
     Scaffold(
         floatingActionButton = {
@@ -34,17 +38,22 @@ fun ExpenseListScreen(
                 onClick = onAddExpense,
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Ajouter",
-                    tint = MaterialTheme.colorScheme.onPrimary)
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Ajouter",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
             }
         }
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Navigation mois
+
+            // ── Navigation mois ─────────────────────────
             MonthNavigator(
                 selectedMonth = uiState.selectedMonth,
                 onPrevious = viewModel::goToPreviousMonth,
@@ -52,7 +61,7 @@ fun ExpenseListScreen(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
             )
 
-            // Carte total du mois
+            // ── Carte total ─────────────────────────────
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -79,7 +88,7 @@ fun ExpenseListScreen(
                 }
             }
 
-            // Filtre catégories
+            // ── Catégories ──────────────────────────────
             LazyRow(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -100,7 +109,7 @@ fun ExpenseListScreen(
                 }
             }
 
-            // Tri
+            // ── Tri ─────────────────────────────────────
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -122,14 +131,21 @@ fun ExpenseListScreen(
                 )
             }
 
-            // Liste ou état vide
-            if (uiState.expenses.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("💸", style = MaterialTheme.typography.headlineMedium)
+            // ── CONTENU PRINCIPAL (FIX ICI) ─────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f), // IMPORTANT
+                contentAlignment = Alignment.Center
+            ) {
+
+                if (uiState.expenses.isEmpty()) {
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text("?", style = MaterialTheme.typography.headlineMedium)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             "Aucune dépense ce mois-ci",
@@ -142,25 +158,30 @@ fun ExpenseListScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
-            } else {
-                val catMap = uiState.categories.associateBy { it.id }
-                LazyColumn {
-                    items(uiState.expenses, key = { it.id }) { expense ->
-                        ExpenseItem(
-                            expense = expense,
-                            category = catMap[expense.categoryId],
-                            onEdit = { onEditExpense(expense) },
-                            onDelete = { showDeleteDialog = expense }
-                        )
+
+                } else {
+
+                    val catMap = uiState.categories.associateBy { it.id }
+
+                    LazyColumn {
+                        items(uiState.expenses, key = { it.id }) { expense ->
+                            ExpenseItem(
+                                expense = expense,
+                                category = catMap[expense.categoryId],
+                                isTopExpense = expense.id == topExpenseId,
+                                onClick = { onViewDetail(expense) },
+                                onEdit = { onEditExpense(expense) },
+                                onDelete = { showDeleteDialog = expense }
+                            )
+                        }
+                        item { Spacer(modifier = Modifier.height(80.dp)) }
                     }
-                    item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
             }
         }
     }
 
-    // Dialogue confirmation suppression
+    // ── Dialog suppression ───────────────────────────
     showDeleteDialog?.let { expense ->
         AlertDialog(
             onDismissRequest = { showDeleteDialog = null },
@@ -170,10 +191,14 @@ fun ExpenseListScreen(
                 TextButton(onClick = {
                     viewModel.deleteExpense(expense)
                     showDeleteDialog = null
-                }) { Text("Supprimer", color = MaterialTheme.colorScheme.error) }
+                }) {
+                    Text("Supprimer", color = MaterialTheme.colorScheme.error)
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = null }) { Text("Annuler") }
+                TextButton(onClick = { showDeleteDialog = null }) {
+                    Text("Annuler")
+                }
             }
         )
     }

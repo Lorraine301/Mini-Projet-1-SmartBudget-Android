@@ -5,7 +5,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,26 +19,73 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
-    val uiState by viewModel.uiState.collectAsState()
-    var showAddDialog by remember { mutableStateOf(false) }
-    var deleteTarget by remember { mutableStateOf<com.smartbudget.app.data.local.entity.CategoryEntity?>(null) }
-    val currentMonth = YearMonth.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
+fun SettingsScreen(
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
+    val uiState    by viewModel.uiState.collectAsState()
+    val isDarkMode by viewModel.isDarkMode.collectAsState()
 
-    LaunchedEffect(uiState.exportMessage, uiState.errorMessage) {
-        // messages auto-clear après affichage
+    var showAddDialog by remember { mutableStateOf(false) }
+    var deleteTarget  by remember {
+        mutableStateOf<com.smartbudget.app.data.local.entity.CategoryEntity?>(null)
     }
+    val currentMonth = YearMonth.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+
+        // ── Section Apparence ─────────────────────────────────────────────
+        item {
+            Text(
+                "Apparence",
+                style = MaterialTheme.typography.titleMedium,
+                color  = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = if (isDarkMode) Icons.Default.DarkMode
+                        else            Icons.Default.LightMode,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text  = if (isDarkMode) "Thème sombre" else "Thème clair",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text  = "Changer l'apparence de l'application",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked         = isDarkMode,
+                        onCheckedChange = { viewModel.toggleDarkMode() }
+                    )
+                }
+            }
+        }
+
+        item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
+
+        // ── Section Catégories ────────────────────────────────────────────
         item {
             Text(
                 "Catégories",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                color  = MaterialTheme.colorScheme.primary
             )
         }
 
@@ -50,11 +99,11 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                     Spacer(Modifier.width(12.dp))
                     Text(
                         category.name,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style    = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f)
                     )
                     Switch(
-                        checked = category.isActive,
+                        checked         = category.isActive,
                         onCheckedChange = { viewModel.toggleCategory(category) }
                     )
                     IconButton(onClick = { deleteTarget = category }) {
@@ -70,7 +119,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
 
         item {
             OutlinedButton(
-                onClick = { showAddDialog = true },
+                onClick  = { showAddDialog = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
@@ -79,25 +128,27 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             }
         }
 
-        item { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
+        item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
 
+        // ── Section Export ────────────────────────────────────────────────
         item {
             Text(
                 "Export",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                color  = MaterialTheme.colorScheme.primary
             )
         }
 
         item {
             Button(
-                onClick = { viewModel.exportCsv(currentMonth) },
+                onClick  = { viewModel.exportCsv(currentMonth) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("📥 Exporter le mois en CSV")
             }
         }
 
+        // Message export succès
         uiState.exportMessage?.let { msg ->
             item {
                 Card(
@@ -108,12 +159,13 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                     Text(
                         msg,
                         modifier = Modifier.padding(12.dp),
-                        style = MaterialTheme.typography.bodyMedium
+                        style    = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
         }
 
+        // Message erreur
         uiState.errorMessage?.let { err ->
             item {
                 Card(
@@ -124,33 +176,62 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                     Text(
                         err,
                         modifier = Modifier.padding(12.dp),
-                        color = MaterialTheme.colorScheme.error
+                        color    = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+
+        // ── Section Budget global ─────────────────────────────────────────
+        item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
+
+        item {
+            Text(
+                "Budget global",
+                style = MaterialTheme.typography.titleMedium,
+                color  = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        "Limite mensuelle : 4 000 MAD",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Une notification est envoyée automatiquement " +
+                                "lorsque le total du mois dépasse 4 000 MAD.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
     }
 
-    // Dialogue ajout catégorie
+    // ── Dialogue ajout catégorie ──────────────────────────────────────────
     if (showAddDialog) {
         var newName by remember { mutableStateOf("") }
         var newIcon by remember { mutableStateOf("📦") }
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
             title = { Text("Nouvelle catégorie") },
-            text = {
+            text  = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
-                        value = newName,
+                        value         = newName,
                         onValueChange = { newName = it },
-                        label = { Text("Nom") },
-                        modifier = Modifier.fillMaxWidth()
+                        label         = { Text("Nom") },
+                        modifier      = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
-                        value = newIcon,
+                        value         = newIcon,
                         onValueChange = { newIcon = it },
-                        label = { Text("Icône (emoji)") },
-                        modifier = Modifier.fillMaxWidth()
+                        label         = { Text("Icône (emoji)") },
+                        modifier      = Modifier.fillMaxWidth()
                     )
                 }
             },
@@ -168,12 +249,12 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         )
     }
 
-    // Dialogue suppression
+    // ── Dialogue suppression catégorie ────────────────────────────────────
     deleteTarget?.let { cat ->
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
             title = { Text("Supprimer ${cat.name} ?") },
-            text = { Text("Impossible si des dépenses y sont associées.") },
+            text  = { Text("Impossible si des dépenses y sont associées.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteCategory(cat)
