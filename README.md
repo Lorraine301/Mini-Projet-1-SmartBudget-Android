@@ -41,9 +41,15 @@ Les fonctionnalités couvertes par ce projet sont les suivantes :
 | Paramètres | Gestion des catégories et préférences |
 | Détail d'une dépense | Affichage en détail de chaque dépense  |
 | Formulaire | Ajout d’une nouvelle catégorie |
+| Accueil | Logo et petite description de l'Application |
 
-
-
+![Dépenses](images/depenses.jpeg)
+![Statistiques](images/statistiques.jpeg)
+![Formulaire dépenses](images/form_depenses.jpeg)
+![Paramètres](images/parametres.jpeg)
+![Détail dépenses ](images/details.jpeg)
+![Catégorie](images/categorie.jpeg)
+![Accueil](images/accueil.jpeg)
 ## Lancer le projet
 
 1. Cloner le repo
