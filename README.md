@@ -29,11 +29,11 @@ Les fonctionnalités couvertes par ce projet sont les suivantes :
 
 ## Architecture du projet
 
-![Architecture](architecture.png)
+![Architecture](images/architecture.png)
 
 ## Diagramme de classes 
 
-![Diagramme](classes.png)
+![Diagramme](images/classes.png)
 
 ## Écrans
 
