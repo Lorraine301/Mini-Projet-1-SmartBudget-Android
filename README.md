@@ -31,6 +31,10 @@ Les fonctionnalités couvertes par ce projet sont les suivantes :
 
 ![Architecture](architecture.png)
 
+## Diagramme de classes 
+
+![Diagramme](classes.png)
+
 ## Écrans
 
 | Écran | Description |
@@ -43,13 +47,22 @@ Les fonctionnalités couvertes par ce projet sont les suivantes :
 | Formulaire | Ajout d’une nouvelle catégorie |
 | Accueil | Logo et petite description de l'Application |
 
-![Dépenses](images/depenses.jpeg)
-![Statistiques](images/statistiques.jpeg)
-![Formulaire dépenses](images/form_depenses.jpeg)
-![Paramètres](images/parametres.jpeg)
-![Détail dépenses ](images/details.jpeg)
-![Catégorie](images/categorie.jpeg)
-![Accueil](images/accueil.jpeg)
+## Aperçu de l'application
+
+<div align="center">
+
+| | | |
+|:---:|:---:|:---:|
+| ![Dépenses](images/depenses.jpeg) | ![Statistiques](images/statistiques.jpeg) | ![Formulaire](images/form_depenses.jpeg) |
+| *Écran Dépenses* | *Écran Statistiques* | *Formulaire d'ajout* |
+| ![Paramètres](images/parametres.jpeg) | ![Détail](images/details.jpeg) | ![Catégorie](images/categorie.jpeg) |
+| *Écran Paramètres* | *Détail dépense* | *Gestion catégories* |
+| ![Accueil](images/accueil.jpeg) | ![Notification](images/notification.jpeg) | ![Mode Sombre](images/dark.jpeg) |
+| *Écran d'accueil* | *Notification dépassement budget* | *Mode sombre* |
+
+</div>
+
+
 ## Lancer le projet
 
 1. Cloner le repo
